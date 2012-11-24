@@ -1,5 +1,42 @@
 ShopSpa::Application.routes.draw do
+  resources :categories
+
+  resources :products do
+    collection do
+      get 'search'
+    end
+  end
+
+  match 'products/search' => "products#search"
+
+  resource :order do
+    collection do
+      get 'confirm'
+      post 'finalize'
+    end
+  end
+
+  match '/cart' => "order#index"
+  match '/cart/add/:id' => "order#add_order_item"
+  match '/cart/delete/:id' => "order#delete_order_item"
+  match '/cart/confirm' => "order#confirm"
+  match '/cart/finalize' => "order#finalize"
+
+  resources :order_items
+
+  scope '/admin' do
+    devise_for :admins
+  end
+
+  namespace :admin do
+    root :to => "orders#index"
+    resources :categories
+    resources :products
+    resources :orders
+  end
+
   root to: "home#index"
+  match "getProducts" => "home#getProducts", :via => :get
   # The priority is based upon order of creation:
   # first created -> highest priority.
 

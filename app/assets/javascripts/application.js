@@ -12,6 +12,11 @@
 //
 //= require jquery
 //= require jquery_ujs
+//= require base
 //= require handlebars
+//= require underscore
 //= require YouAreDaBomb
+//= require utils
+//= require sugar-1.3.6.min
+//= require uuid
 //= require_tree .

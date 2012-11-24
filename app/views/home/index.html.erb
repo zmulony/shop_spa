@@ -1,0 +1,10 @@
+<script type="x-handlebars-template" id="products-template">
+	<h1> List of products </h1>
+	<ul class="products_list">
+		{{#each products}}
+		<li>{{this.name}}</li>
+		{{/each}}
+	</ul>
+</script>
+
+<div id="products"></div>
