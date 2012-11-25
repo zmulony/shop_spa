@@ -43,7 +43,6 @@ class Storage
             dataType: 'json'
             success: (data, status) => @storeJSON(data)
       })
-
     @products = []
     for p in @json
       @products.add(new Product(
@@ -53,7 +52,7 @@ class Storage
                                 p.price,
                                 p.category_id
       ))
-    return @products
+    @products
 
   getCategories: ->
     $.ajax({
@@ -62,14 +61,13 @@ class Storage
             dataType: 'json'
             success: (data, status) => @storeJSON(data)
       })
-
     @categories = []
     for c in @json
       @categories.add(new Category(
                                 c.id,
                                 p.name
       ))
-    return @categories
+    @categories
 
 # # # # # # # # # 
 #    USECASES   #
@@ -80,13 +78,13 @@ class ShopUseCase
     @categories = []
     @products = []
 
-  setInitialProducts: (products) ->
+  setInitialProducts: (products) =>
     @products = products
 
-  setInitialCategories: (categories) ->
+  setInitialCategories: (categories) =>
     @categories = categories
 
-  showAllProducts: ->
+  showAllProducts: =>
 
 # # # # # # # # # 
 #      GUI      #
@@ -98,15 +96,13 @@ class Gui
   showProducts: (products) =>
     source = $("#products-template").html()
     template = Handlebars.compile(source)
-    data = { "products": [] }
-
+    data = { products : [] }
     for product in products
       data.products.push({
                             name: product.name,
                             price: product.price,
                             description: product.description
       })
-
     html = template(data)
     $("#products").html(html)
 
@@ -115,12 +111,10 @@ class Gui
 # # # # # # # # # 
 
 class Glue
-  constructor: (@usecase, @gui, @storage) ->
+  constructor: (@useCase, @gui, @storage) ->
     AutoBind(@gui, @useCase)
-
     Before(@useCase, 'showAllProducts', => @useCase.setInitialProducts(@storage.getProducts()))
     After(@useCase, 'showAllProducts', => @gui.showProducts(@useCase.products))
-
     LogAll(@useCase)
     LogAll(@gui)
 
@@ -131,10 +125,9 @@ class Glue
 class ShopApp
   constructor: ->
     useCase = new ShopUseCase()
-    window.useCase = useCase
     gui = new Gui()
     storage = new Storage()
     glue = new Glue(useCase, gui, storage)
     useCase.showAllProducts()
 
-$(document).ready ()-> new ShopApp()
+$(-> new ShopApp())
