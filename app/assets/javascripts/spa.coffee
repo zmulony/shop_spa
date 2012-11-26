@@ -49,7 +49,7 @@ class Storage
                                 p.id,
                                 p.name,
                                 p.description,
-                                p.price,
+                                p.price/100.0,
                                 p.category_id
       ))
     @products
@@ -86,6 +86,14 @@ class ShopUseCase
 
   showAllProducts: =>
 
+  showProduct: (id) =>
+
+  findProduct: (id) =>
+    for product in @products
+      if product.id == id
+        return product
+
+
 # # # # # # # # # 
 #      GUI      #
 # # # # # # # # # 
@@ -93,18 +101,62 @@ class ShopUseCase
 class Gui
   constructor: ->
 
-  showProducts: (products) =>
-    source = $("#products-template").html()
+  clearAll: =>
+    $("#categories").html("")
+    $("#category_products").html("")
+    $("#product").html("")
+
+
+  createTemplate: (name, content = {}) =>
+    source = $(name+"-template").html()
     template = Handlebars.compile(source)
-    data = { products : [] }
-    for product in products
-      data.products.push({
-                            name: product.name,
-                            price: product.price,
-                            description: product.description
-      })
-    html = template(data)
-    $("#products").html(html)
+    template(content)
+
+  # showCategories: (categories) =>
+  #   source = $("#categories-template").html()
+  #   template = Handlebars.compile(source)
+  #   data = { categories : [] }
+  #   for category in categories
+  #     data.categories.push({
+  #                             name: category.name
+  #     })
+  #   html = template(data)
+  #   $("#categories").html(html)
+
+  # showCategory: (category, products) =>
+  #   source = $("#category-template").html()
+  #   template = Handlebars.compile(source)
+  #   data = { category : category, products : [] }
+  #   for product in products
+  #     data.products.push({
+  #                           name: product.name,
+  #                           price: product.price,
+  #                           description: product.description
+  #     })
+  #   html = template(data)
+  #   $("#category").html(html)
+
+  showProducts: (products) =>
+    @clearAll()
+    $("#category_products").html @createTemplate("#category_products", products)
+
+    that = this
+    $(".showProduct").click ->
+      product_id = $(this).data("product_id")
+      that.showProductClicked(product_id)
+
+  showProductClicked: (id) =>
+
+  showProduct: (product) =>
+    @clearAll()
+    $("#product").html @createTemplate("#product", product)
+
+    that = this
+    $(".backToProducts").click ->
+      that.backToProducts()
+
+  backToProducts: =>
+
 
 # # # # # # # # # 
 #     GLUE      #
@@ -113,8 +165,15 @@ class Gui
 class Glue
   constructor: (@useCase, @gui, @storage) ->
     AutoBind(@gui, @useCase)
+
     Before(@useCase, 'showAllProducts', => @useCase.setInitialProducts(@storage.getProducts()))
     After(@useCase, 'showAllProducts', => @gui.showProducts(@useCase.products))
+
+    After(@gui, 'showProductClicked', (id) => @useCase.showProduct(id))
+    After(@useCase, 'showProduct', (id) => @gui.showProduct(@useCase.findProduct(id)))
+
+    After(@gui, 'backToProducts', => @useCase.showAllProducts())
+
     LogAll(@useCase)
     LogAll(@gui)
 

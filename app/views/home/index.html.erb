@@ -1,10 +1,42 @@
-<script type="x-handlebars-template" id="products-template">
-	<h1> List of products </h1>
-	<ul class="products_list">
-		{{#each products}}
-		<li>{{this.name}}</li>
+<h1> Welcome to my SPA-shop! </h1>
+
+<div id="categories"></div>
+<div id="category_products"></div>
+<div id="product"></div>
+
+<!-- scripts -->
+
+<script type="x-handlebars-template" id="categories-template">
+	<h3> Categories </h3>
+	<ul class="categories_list">
+		{{#each categories}}
+		<li>
+			{{this.name}}
+			<a href="#" class="showProducts">View products</a>
+		</li>
 		{{/each}}
 	</ul>
 </script>
 
-<div id="products"></div>
+<script type="x-handlebars-template" id="category_products-template">
+	<h4> List of products </h4>
+	<ul class="products_list">
+		{{#each this}}
+		<li>
+			{{this.name}}
+			<a href="#" data-product_id={{this.id}} class="showProduct">View details</a>
+		</li>
+		{{/each}}
+	</ul>
+
+	<a href="#" class="backToCategories">Back</a>
+</script>
+
+<script type="x-handlebars-template" id="product-template">
+	<h3> {{this.name}} </h3>
+	<p>Price: {{this.price}}$</p>
+	<p>Description:</p>
+	<p>{{this.description}}</p>
+
+	<a href="#" class="backToProducts">Back</a>
+</script>
