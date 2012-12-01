@@ -15,10 +15,12 @@ class Cart
 
   calculateTotalPrice: ->
     @total_price = @items.reduce ((acc, x) -> acc+x.price*x.quantity), 0
+    @total_price /= 100.0
     @total_price
 
 class OrderItem
   constructor: (@id, @product_id, @price, @quantity) ->
+    @item_price = @price / 100.0
 
   increaseQuantity: =>
     @quantity = @quantity + 1
@@ -78,8 +80,7 @@ class Storage
       })
     @cart = new Cart()
     for item in @json.order_items
-      item.price /= 100.0
-    @cart.items = @json.order_items
+      @cart.items.add(new OrderItem(item.id, item.product_id, item.price, item.quantity))
     @cart.calculateTotalPrice()
     @cart
 
