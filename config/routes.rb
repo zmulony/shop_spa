@@ -38,6 +38,8 @@ ShopSpa::Application.routes.draw do
   root to: "home#index"
   match "getProducts" => "home#getProducts", :via => :get
   match "getCategories" => "home#getCategories", :via => :get
+  match "getCart" => "home#getCart", :via => :get
+  match "addItemToCart" => "home#addItemToCart", :via => :post
   # The priority is based upon order of creation:
   # first created -> highest priority.
 

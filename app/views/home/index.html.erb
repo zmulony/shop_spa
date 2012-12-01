@@ -1,8 +1,10 @@
 <h1> Welcome to my SPA-shop! </h1>
 
+<div id="cart_button"></div>
 <div id="categories"></div>
 <div id="category_products"></div>
 <div id="product"></div>
+<div id="cart"></div>
 
 <!-- scripts -->
 
@@ -41,6 +43,34 @@
 	<p>Price: {{this.price}}$</p>
 	<p>Description:</p>
 	<p>{{this.description}}</p>
+	<p><a href="#" data-product_id={{this.id}} class="addProductToCart">Add to cart</a></p>
 
 	<a href="#" data-category_id={{this.category_id}} class="backToCategoryProducts">Back</a>
+</script>
+
+<script type="x-handlebars-template" id="cart-template">
+	<h3> Your current cart </h3>
+	<h4> List of products </h4>
+	<table class="products_list">
+		<tr>
+			<td><b>Product</b></td>
+			<td><b>Quantity</b></td>
+			<td><b>Price</b></td>
+		</tr>
+		{{#each items}}
+		<tr>
+			<td>{{this.product_id}}</td>
+			<td>{{this.quantity}}</td>
+			<td>{{this.price}}$</td>
+		</tr>
+		{{/each}}
+	</table></br>
+
+	<b>Total price:</b>{{this.total_price}}$</br>
+
+	<a href="#" class="backToCategories">Back to Categories</a>
+</script>
+
+<script type="x-handlebars-template" id="cart_button-template">
+	<a href="#" class="showCartButton">Go to cart</a>
 </script>

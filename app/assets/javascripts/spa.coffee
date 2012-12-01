@@ -8,23 +8,23 @@ class Category
 class Product
   constructor: (@id, @name, @description, @price, @category_id) ->
 
-class Order
-  constructor: (@id, @buyer_id, @confirmed) ->
+class Cart
+  constructor: ->
+    @items = []
+    @total_price = 0
+
+  calculateTotalPrice: ->
+    @total_price = @items.reduce ((acc, x) -> acc+x.price*x.quantity), 0
+    @total_price
 
 class OrderItem
-  constructor: (@product, @quantity) ->
-    @total_price = @product.price * @quantity
+  constructor: (@id, @product_id, @price, @quantity) ->
 
-  updateTotalPrice: =>
-    @total_price = @product.price * @quantity
-
-  inc: =>
+  increaseQuantity: =>
     @quantity = @quantity + 1
-    updateTotalPrice()
 
-  dec: =>
+  decreaseQuantity: =>
     @quantity = @quantity - 1
-    updateTotalPrice()
 
 # # # # # # # # # 
 #    STORAGE    #
@@ -35,6 +35,21 @@ class Storage
 
   storeJSON: (json) ->
     @json = json
+
+  getCategories: ->
+    $.ajax({
+            url: 'getCategories.json'
+            async: false
+            dataType: 'json'
+            success: (data, status) => @storeJSON(data)
+      })
+    @categories = []
+    for c in @json
+      @categories.add(new Category(
+                                c.id,
+                                c.name
+      ))
+    @categories
 
   getProducts: ->
     $.ajax({
@@ -54,20 +69,28 @@ class Storage
       ))
     @products
 
-  getCategories: ->
+  getCart: ->
     $.ajax({
-            url: 'getCategories.json'
+            url: 'getCart.json'
             async: false
             dataType: 'json'
             success: (data, status) => @storeJSON(data)
       })
-    @categories = []
-    for c in @json
-      @categories.add(new Category(
-                                c.id,
-                                c.name
-      ))
-    @categories
+    @cart = new Cart()
+    for item in @json.order_items
+      item.price /= 100.0
+    @cart.items = @json.order_items
+    @cart.calculateTotalPrice()
+    @cart
+
+  addItemToCart: (product_id) ->
+    $.ajax({
+            type: 'POST'
+            url: 'addItemToCart.json'
+            async: false
+            dataType: 'json'
+            data: {product_id: product_id}
+      })
 
 # # # # # # # # # 
 #    USECASES   #
@@ -77,15 +100,21 @@ class ShopUseCase
   constructor: ->
     @categories = []
     @products = []
+    @cart = null
 
     @category_products = []
     @category = null
 
-  setInitialProducts: (products) =>
+  initHomePage: =>
+
+  initProducts: (products) =>
     @products = products
 
-  setInitialCategories: (categories) =>
+  initCategories: (categories) =>
     @categories = categories
+
+  initCart: (cart) =>
+    @cart = cart
 
   showCategories: =>
 
@@ -108,6 +137,8 @@ class ShopUseCase
       if product.id == id
         return product
 
+  showCartButton: =>
+
 
 # # # # # # # # # 
 #      GUI      #
@@ -120,6 +151,7 @@ class Gui
     $("#categories").html("")
     $("#category_products").html("")
     $("#product").html("")
+    $("#cart").html("")
 
 
   createTemplate: (name, content = {}) =>
@@ -132,7 +164,8 @@ class Gui
     $("#categories").html @createTemplate("#categories", categories)
 
     that = this
-    $(".showCategoryProducts").click ->
+    $(".showCategoryProducts").click (event) ->
+      event.preventDefault()
       category_id = $(this).data("category_id")
       that.showCategoryProductsClicked(category_id)
 
@@ -144,11 +177,13 @@ class Gui
     $("#category_products").html @createTemplate("#category_products", content)
 
     that = this
-    $(".showProduct").click ->
+    $(".showProduct").click (event) ->
+      event.preventDefault()
       product_id = $(this).data("product_id")
       that.showProductClicked(product_id)
 
-    $(".backToCategories").click ->
+    $(".backToCategories").click (event) ->
+      event.preventDefault()
       that.backToCategories()
 
   showProductClicked: (id) =>
@@ -158,9 +193,36 @@ class Gui
     $("#product").html @createTemplate("#product", product)
 
     that = this
-    $(".backToCategoryProducts").click ->
+    $(".addProductToCart").click (event) ->
+      event.preventDefault()
+      product_id = $(this).data("product_id")
+      that.addProductToCartClicked(product_id)
+
+    $(".backToCategoryProducts").click (event) ->
+      event.preventDefault()
       category_id = $(this).data("category_id")
       that.backToCategoryProducts(category_id)
+
+  addProductToCartClicked: (product_id) =>
+
+  showCart: (cart) =>
+    @clearAll()
+    $("#cart").html @createTemplate("#cart", cart)
+
+    that = this
+    $(".backToCategories").click (event) ->
+      event.preventDefault()
+      that.backToCategories()
+
+  showCartButton: =>
+    $("#cart_button").html @createTemplate("#cart_button")
+
+    that = this
+    $(".showCartButton").click (event) ->
+      event.preventDefault()
+      that.showCartButtonClicked()
+
+  showCartButtonClicked: =>
 
   backToCategories: =>
 
@@ -175,8 +237,12 @@ class Glue
   constructor: (@useCase, @gui, @storage) ->
     AutoBind(@gui, @useCase)
 
-    Before(@useCase, 'showCategories', => @useCase.setInitialCategories(@storage.getCategories()))
-    Before(@useCase, 'showCategories', => @useCase.setInitialProducts(@storage.getProducts()))
+    Before(@useCase, 'initHomePage', => @useCase.initCategories(@storage.getCategories()))
+    Before(@useCase, 'initHomePage', => @useCase.initProducts(@storage.getProducts()))
+    Before(@useCase, 'initHomePage', => @useCase.initCart(@storage.getCart()))
+    After(@useCase, 'initHomePage', => @gui.showCategories(@useCase.categories))
+    After(@useCase, 'initHomePage', => @gui.showCartButton())
+
     After(@useCase, 'showCategories', => @gui.showCategories(@useCase.categories))
 
     After(@useCase, 'showCategoryProductsClicked', (category_id) => @useCase.showCategoryProducts(category_id))
@@ -186,6 +252,12 @@ class Glue
 
     After(@gui, 'showProductClicked', (id) => @useCase.showProduct(id))
     After(@useCase, 'showProduct', (id) => @gui.showProduct(@useCase.findProduct(id)))
+
+    After(@gui, 'addProductToCartClicked', (product_id) => @storage.addItemToCart(product_id))
+    After(@storage, 'addItemToCart', => @useCase.initCart(@storage.getCart()))
+
+    After(@gui, 'showCartButtonClicked', => @useCase.showCartButton())
+    After(@useCase, 'showCartButton', => @gui.showCart(@useCase.cart))
 
     After(@gui, 'backToCategories', => @useCase.showCategories())
     After(@gui, 'backToCategoryProducts', (category_id) => @useCase.showCategoryProducts(category_id))
@@ -203,6 +275,6 @@ class ShopApp
     gui = new Gui()
     storage = new Storage()
     glue = new Glue(useCase, gui, storage)
-    useCase.showCategories()
+    useCase.initHomePage()
 
 $(-> new ShopApp())
