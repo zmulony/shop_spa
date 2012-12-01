@@ -65,7 +65,7 @@ class Storage
     for c in @json
       @categories.add(new Category(
                                 c.id,
-                                p.name
+                                c.name
       ))
     @categories
 
@@ -78,13 +78,28 @@ class ShopUseCase
     @categories = []
     @products = []
 
+    @category_products = []
+    @category = null
+
   setInitialProducts: (products) =>
     @products = products
 
   setInitialCategories: (categories) =>
     @categories = categories
 
-  showAllProducts: =>
+  showCategories: =>
+
+  showCategoryProducts: (category_id) =>
+
+  findCategory: (category_id) =>
+    for category in @categories
+      if category.id == category_id
+        @category = category
+        return @category
+
+  findCategoryProducts: (category_id) =>
+    @category_products = (product for product in @products when product.category_id == category_id)
+    return @category_products
 
   showProduct: (id) =>
 
@@ -112,38 +127,29 @@ class Gui
     template = Handlebars.compile(source)
     template(content)
 
-  # showCategories: (categories) =>
-  #   source = $("#categories-template").html()
-  #   template = Handlebars.compile(source)
-  #   data = { categories : [] }
-  #   for category in categories
-  #     data.categories.push({
-  #                             name: category.name
-  #     })
-  #   html = template(data)
-  #   $("#categories").html(html)
-
-  # showCategory: (category, products) =>
-  #   source = $("#category-template").html()
-  #   template = Handlebars.compile(source)
-  #   data = { category : category, products : [] }
-  #   for product in products
-  #     data.products.push({
-  #                           name: product.name,
-  #                           price: product.price,
-  #                           description: product.description
-  #     })
-  #   html = template(data)
-  #   $("#category").html(html)
-
-  showProducts: (products) =>
+  showCategories: (categories) =>
     @clearAll()
-    $("#category_products").html @createTemplate("#category_products", products)
+    $("#categories").html @createTemplate("#categories", categories)
+
+    that = this
+    $(".showCategoryProducts").click ->
+      category_id = $(this).data("category_id")
+      that.showCategoryProductsClicked(category_id)
+
+  showCategoryProductsClicked: (category_id) =>
+
+  showCategoryProducts: (category, products) =>
+    @clearAll()
+    content = {category: category, products: products}
+    $("#category_products").html @createTemplate("#category_products", content)
 
     that = this
     $(".showProduct").click ->
       product_id = $(this).data("product_id")
       that.showProductClicked(product_id)
+
+    $(".backToCategories").click ->
+      that.backToCategories()
 
   showProductClicked: (id) =>
 
@@ -152,10 +158,13 @@ class Gui
     $("#product").html @createTemplate("#product", product)
 
     that = this
-    $(".backToProducts").click ->
-      that.backToProducts()
+    $(".backToCategoryProducts").click ->
+      category_id = $(this).data("category_id")
+      that.backToCategoryProducts(category_id)
 
-  backToProducts: =>
+  backToCategories: =>
+
+  backToCategoryProducts: (category_id) =>
 
 
 # # # # # # # # # 
@@ -166,13 +175,20 @@ class Glue
   constructor: (@useCase, @gui, @storage) ->
     AutoBind(@gui, @useCase)
 
-    Before(@useCase, 'showAllProducts', => @useCase.setInitialProducts(@storage.getProducts()))
-    After(@useCase, 'showAllProducts', => @gui.showProducts(@useCase.products))
+    Before(@useCase, 'showCategories', => @useCase.setInitialCategories(@storage.getCategories()))
+    Before(@useCase, 'showCategories', => @useCase.setInitialProducts(@storage.getProducts()))
+    After(@useCase, 'showCategories', => @gui.showCategories(@useCase.categories))
+
+    After(@useCase, 'showCategoryProductsClicked', (category_id) => @useCase.showCategoryProducts(category_id))
+    Before(@useCase, 'showCategoryProducts', (category_id) => @useCase.findCategory(category_id))
+    Before(@useCase, 'showCategoryProducts', (category_id) => @useCase.findCategoryProducts(category_id))
+    After(@useCase, 'showCategoryProducts', => @gui.showCategoryProducts(@useCase.category, @useCase.category_products))
 
     After(@gui, 'showProductClicked', (id) => @useCase.showProduct(id))
     After(@useCase, 'showProduct', (id) => @gui.showProduct(@useCase.findProduct(id)))
 
-    After(@gui, 'backToProducts', => @useCase.showAllProducts())
+    After(@gui, 'backToCategories', => @useCase.showCategories())
+    After(@gui, 'backToCategoryProducts', (category_id) => @useCase.showCategoryProducts(category_id))
 
     LogAll(@useCase)
     LogAll(@gui)
@@ -187,6 +203,6 @@ class ShopApp
     gui = new Gui()
     storage = new Storage()
     glue = new Glue(useCase, gui, storage)
-    useCase.showAllProducts()
+    useCase.showCategories()
 
 $(-> new ShopApp())

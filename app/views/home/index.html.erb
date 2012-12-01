@@ -8,26 +8,30 @@
 
 <script type="x-handlebars-template" id="categories-template">
 	<h3> Categories </h3>
-	<ul class="categories_list">
-		{{#each categories}}
-		<li>
-			{{this.name}}
-			<a href="#" class="showProducts">View products</a>
-		</li>
+	<table class="categories_list">
+		{{#each this}}
+		<tr>
+			<td>{{this.name}}</td>
+			<td><a href="#" data-category_id={{this.id}} class="showCategoryProducts">View products</a></td>
+		</tr>
 		{{/each}}
-	</ul>
+	</table>
 </script>
 
 <script type="x-handlebars-template" id="category_products-template">
+	<h3> {{category.name}} </h3>
 	<h4> List of products </h4>
-	<ul class="products_list">
-		{{#each this}}
-		<li>
-			{{this.name}}
-			<a href="#" data-product_id={{this.id}} class="showProduct">View details</a>
-		</li>
+	<table class="products_list">
+		<tr>
+			<td><b>Product</b></td>
+		</tr>
+		{{#each products}}
+		<tr>
+			<td>{{this.name}}</td>
+			<td><a href="#" data-product_id={{this.id}} class="showProduct">View details</a></td>
+		</tr>
 		{{/each}}
-	</ul>
+	</table></br>
 
 	<a href="#" class="backToCategories">Back</a>
 </script>
@@ -38,5 +42,5 @@
 	<p>Description:</p>
 	<p>{{this.description}}</p>
 
-	<a href="#" class="backToProducts">Back</a>
+	<a href="#" data-category_id={{this.category_id}} class="backToCategoryProducts">Back</a>
 </script>
