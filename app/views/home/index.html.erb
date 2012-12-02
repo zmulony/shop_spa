@@ -2,11 +2,14 @@
 
 <div id="cart_notification"></div>
 <div id="cart_button"></div>
+<div id="search_button"></div>
 <div id="categories"></div>
 <div id="category_products"></div>
 <div id="product"></div>
 <div id="cart"></div>
 <div id="buyer_form"></div>
+<div id="search_form"></div>
+<div id="search_results"></div>
 
 <!-- scripts -->
 
@@ -37,7 +40,7 @@
 		{{/each}}
 	</table></br>
 
-	<a href="#" class="backToCategories">Back</a>
+	<a href="#" class="backToCategories">Back to Categories</a>
 </script>
 
 <script type="x-handlebars-template" id="product-template">
@@ -102,11 +105,38 @@
 	<p><a href="#" class="finalizeOrder">Finalize order</a></p>
 </script>
 
-<script type="x-handlebars-template" id="thanks-template">
-	<h3>Thank you</h3>
+<script type="x-handlebars-template" id="search_button-template">
+	<a href="#" class="showSearchButton">Search...</a>
+</script>
 
-	Your request will be processed within a few days.</br>
-	We invite you to further purchases.</br>
+<script type="x-handlebars-template" id="search_form-template">
+	<form id="search_form">
+		<p>Product name:</p>
+			<input type="text" name="name"/></br>
+		<p>Description:</p>
+			<input type="text" name="description"/></br>
+		<p>Min. price:</p>
+			<input type="text" name="min"/></br>
+		<p>Max. price:</p>
+			<input type="text" name="max"/></br>
+	</form>
+	<p><a href="#" class="submitSearch">Search products</a></p>
+</script>
+
+<script type="x-handlebars-template" id="search_results-template">
+	<h3> Search results </h3>
+	<h4> List of products </h4>
+	<table class="products_list">
+		<tr>
+			<td><b>Product</b></td>
+		</tr>
+		{{#each this}}
+		<tr>
+			<td>{{this.name}}</td>
+			<td><a href="#" data-product_id={{this.id}} class="showProduct">View details</a></td>
+		</tr>
+		{{/each}}
+	</table></br>
 
 	<a href="#" class="backToCategories">Back to Categories</a>
 </script>

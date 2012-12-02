@@ -145,6 +145,8 @@ class ShopUseCase
     @category_products = []
     @category = null
 
+    @results = []
+
   initHomePage: =>
 
   initProducts: (products) =>
@@ -195,6 +197,23 @@ class ShopUseCase
 
   proceedFinalization: (buyer) =>
 
+  showSearchButton: =>
+
+  search: (data) =>
+    # just filter products to get search results
+    # easier than sending => using ransack => geting results from backend
+    @results = @products
+    if data["name"]
+      @results = @results.filter (product) -> product.name.indexOf(data["name"]) != -1
+    if data["description"]
+      @results = @results.filter (product) -> product.description.indexOf(data["description"]) != -1
+    if data["min"]
+      @results = @results.filter (product) -> product.price >= data["min"]
+    if data["max"]
+      @results = @results.filter (product) -> product.price <= data["max"]
+    @results
+
+
 
 # # # # # # # # # 
 #      GUI      #
@@ -209,7 +228,8 @@ class Gui
     $("#product").html("")
     $("#cart").html("")
     $("#buyer_form").html("")
-
+    $("#search_form").html("")
+    $("#search_results").html("")
 
   createTemplate: (name, content = {}) =>
     source = $(name+"-template").html()
@@ -321,6 +341,44 @@ class Gui
       We invite you to further purchases.\n"
       )
 
+  showSearchButton: =>
+    $("#search_button").html @createTemplate("#search_button")
+
+    that = this
+    $(".showSearchButton").click (event) ->
+      event.preventDefault()
+      that.showSearchButtonClicked()
+
+  showSearchButtonClicked: =>
+
+  showSearchForm: =>
+    @clearAll()
+    $("#search_form").html @createTemplate("#search_form")
+
+    that = this
+    $(".submitSearch").click (event) ->
+      event.preventDefault()
+      data = {}
+      $.each $("#search_form input"), (i, input) ->
+        data[input.name] = input.value
+      that.submitSearchClicked(data)
+
+  submitSearchClicked: (data) =>
+
+  showSearchResults: (results) =>
+    @clearAll()
+    $("#search_results").html @createTemplate("#search_results", results)
+
+    that = this
+    $(".showProduct").click (event) ->
+      event.preventDefault()
+      product_id = $(this).data("product_id")
+      that.showProductClicked(product_id)
+
+    $(".backToCategories").click (event) ->
+      event.preventDefault()
+      that.backToCategories()
+
   backToCategories: =>
 
   backToCategoryProducts: (category_id) =>
@@ -339,6 +397,7 @@ class Glue
     Before(@useCase, 'initHomePage', => @useCase.initCart(@storage.getCart()))
     After(@useCase, 'initHomePage', => @gui.showCategories(@useCase.categories))
     After(@useCase, 'initHomePage', => @gui.showCartButton())
+    After(@useCase, 'initHomePage', => @gui.showSearchButton())
 
     After(@useCase, 'showCategories', => @gui.showCategories(@useCase.categories))
 
@@ -370,6 +429,12 @@ class Glue
 
     After(@gui, 'showCartButtonClicked', => @useCase.showCartButton())
     After(@useCase, 'showCartButton', => @gui.showCart(@useCase.cart))
+
+    After(@gui, 'showSearchButtonClicked', => @useCase.showSearchButton())
+    After(@useCase, 'showSearchButton', => @gui.showSearchForm())
+
+    After(@gui, 'submitSearchClicked', (data) => @useCase.search(data))
+    After(@useCase, 'search', => @gui.showSearchResults(@useCase.results))
 
     After(@gui, 'backToCategories', => @useCase.showCategories())
     After(@gui, 'backToCategoryProducts', (category_id) => @useCase.showCategoryProducts(category_id))
