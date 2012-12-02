@@ -1,5 +1,6 @@
 <h1> Welcome to my SPA-shop! </h1>
 
+<div id="cart_notification"></div>
 <div id="cart_button"></div>
 <div id="categories"></div>
 <div id="category_products"></div>
@@ -73,4 +74,16 @@
 
 <script type="x-handlebars-template" id="cart_button-template">
 	<a href="#" class="showCartButton">Go to cart</a>
+</script>
+
+<script type="x-handlebars-template" id="cart_notification-template">
+	{{#if this.empty}}
+	<p>Your cart is empty</p>
+	{{/if}}
+	{{#if this.has_one_item}}
+	<p>Your cart contains 1 product</p>
+	{{/if}}
+	{{#if this.has_many_items}}
+	<p>Your cart contains {{this.amount_of_items}} products</p>
+	{{/if}}
 </script>

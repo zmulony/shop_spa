@@ -12,6 +12,25 @@ class Cart
   constructor: ->
     @items = []
     @total_price = 0
+    @amount_of_items = 0
+    @empty = true
+    @has_one_item = false
+    @has_many_items = false
+
+  calculateAmountOfItems: ->
+    @amount_of_items = @items.reduce ((acc, x) -> acc+x.quantity), 0
+    if @amount_of_items == 0
+      @empty = true
+      @has_one_item = false
+      @has_many_items = false
+    if @amount_of_items == 1
+      @empty = false
+      @has_one_item = true
+      @has_many_items = false
+    if @amount_of_items > 1
+      @empty = false
+      @has_one_item = false
+      @has_many_items = true
 
   calculateTotalPrice: ->
     @total_price = @items.reduce ((acc, x) -> acc+x.price*x.quantity), 0
@@ -82,6 +101,7 @@ class Storage
     for item in @json.order_items
       @cart.items.add(new OrderItem(item.id, item.product_id, item.price, item.quantity))
     @cart.calculateTotalPrice()
+    @cart.calculateAmountOfItems()
     @cart
 
   addItemToCart: (product_id) ->
@@ -139,6 +159,8 @@ class ShopUseCase
         return product
 
   showCartButton: =>
+
+  addProduct: (product_id) =>
 
 
 # # # # # # # # # 
@@ -225,6 +247,9 @@ class Gui
 
   showCartButtonClicked: =>
 
+  showCartNotification: (cart) =>
+    $("#cart_notification").html @createTemplate("#cart_notification", cart)
+
   backToCategories: =>
 
   backToCategoryProducts: (category_id) =>
@@ -254,8 +279,10 @@ class Glue
     After(@gui, 'showProductClicked', (id) => @useCase.showProduct(id))
     After(@useCase, 'showProduct', (id) => @gui.showProduct(@useCase.findProduct(id)))
 
-    After(@gui, 'addProductToCartClicked', (product_id) => @storage.addItemToCart(product_id))
-    After(@storage, 'addItemToCart', => @useCase.initCart(@storage.getCart()))
+    After(@gui, 'addProductToCartClicked', (product_id) => @useCase.addProduct(product_id))
+    Before(@useCase, 'addProduct', (product_id) => @storage.addItemToCart(product_id))
+    After(@useCase, 'addProduct', => @useCase.initCart(@storage.getCart()))
+    After(@useCase, 'initCart', => @gui.showCartNotification(@useCase.cart))
 
     After(@gui, 'showCartButtonClicked', => @useCase.showCartButton())
     After(@useCase, 'showCartButton', => @gui.showCart(@useCase.cart))
