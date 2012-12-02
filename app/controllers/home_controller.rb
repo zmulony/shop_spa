@@ -32,6 +32,24 @@ class HomeController < ApplicationController
 			order_item = @cart.order_items.create(:product => product, :quantity => 1, :price => product.price)
 		else
 			order_item.quantity += 1
+			order_item.price += product.price
+			order_item.update_attributes(params[:order_item])
+		end
+
+		respond_to do |format|
+			format.json {render :json => "ok"}
+		end
+	end
+
+	def removeItemFromCart
+		order_item = @cart.order_items.find(params[:item_id])
+		product = Product.find(order_item.product_id)
+
+		if order_item.quantity == 1
+			order_item.delete
+		else
+			order_item.quantity -= 1
+			order_item.price -= product.price
 			order_item.update_attributes(params[:order_item])
 		end
 

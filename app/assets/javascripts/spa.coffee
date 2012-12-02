@@ -33,7 +33,7 @@ class Cart
       @has_many_items = true
 
   calculateTotalPrice: ->
-    @total_price = @items.reduce ((acc, x) -> acc+x.price*x.quantity), 0
+    @total_price = @items.reduce ((acc, x) -> acc+x.price), 0
     @total_price /= 100.0
     @total_price
 
@@ -113,6 +113,15 @@ class Storage
             data: {product_id: product_id}
       })
 
+  removeItemFromCart: (item_id) ->
+    $.ajax({
+            type: 'POST'
+            url: 'removeItemFromCart.json'
+            async: false
+            dataType: 'json'
+            data: {item_id: item_id}
+      })
+
 # # # # # # # # # 
 #    USECASES   #
 # # # # # # # # # 
@@ -161,6 +170,8 @@ class ShopUseCase
   showCartButton: =>
 
   addProduct: (product_id) =>
+
+  removeProduct: (item_id) =>
 
 
 # # # # # # # # # 
@@ -237,6 +248,13 @@ class Gui
       event.preventDefault()
       that.backToCategories()
 
+    $(".removeProductFromCart").click (event) ->
+      event.preventDefault()
+      item_id = $(this).data("item_id")
+      that.removeProductFromCartClicked(item_id)
+
+  removeProductFromCartClicked: (item_id) =>
+
   showCartButton: =>
     $("#cart_button").html @createTemplate("#cart_button")
 
@@ -281,8 +299,12 @@ class Glue
 
     After(@gui, 'addProductToCartClicked', (product_id) => @useCase.addProduct(product_id))
     Before(@useCase, 'addProduct', (product_id) => @storage.addItemToCart(product_id))
-    After(@useCase, 'addProduct', => @useCase.initCart(@storage.getCart()))
+    AfterAll(@useCase, ['addProduct', 'removeProduct'], => @useCase.initCart(@storage.getCart()))
+    After(@useCase, 'initCart', => @gui.showCart(@useCase.cart))
     After(@useCase, 'initCart', => @gui.showCartNotification(@useCase.cart))
+
+    After(@gui, 'removeProductFromCartClicked', (item_id) => @useCase.removeProduct(item_id))
+    Before(@useCase, 'removeProduct', (item_id) => @storage.removeItemFromCart(item_id))
 
     After(@gui, 'showCartButtonClicked', => @useCase.showCartButton())
     After(@useCase, 'showCartButton', => @gui.showCart(@useCase.cart))
