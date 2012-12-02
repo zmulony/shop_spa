@@ -6,6 +6,7 @@
 <div id="category_products"></div>
 <div id="product"></div>
 <div id="cart"></div>
+<div id="buyer_form"></div>
 
 <!-- scripts -->
 
@@ -70,6 +71,8 @@
 
 	<b>Total price:</b>{{this.total_price}}$</br>
 
+	<a href="#" class="confirmOrder">Confirm order</a></br>
+
 	<a href="#" class="backToCategories">Back to Categories</a>
 </script>
 
@@ -87,4 +90,23 @@
 	{{#if this.has_many_items}}
 	<p>Your cart contains {{this.amount_of_items}} products</p>
 	{{/if}}
+</script>
+
+<script type="x-handlebars-template" id="buyer_form-template">
+	<form id="buyer_form">
+		<p>First name:</p>
+			<input type="text" name="firstname" required="required"/></br>
+		<p>Last name:</p>
+			<input type="text" name="lastname" required="required"/></br>
+	</form>
+	<p><a href="#" class="finalizeOrder">Finalize order</a></p>
+</script>
+
+<script type="x-handlebars-template" id="thanks-template">
+	<h3>Thank you</h3>
+
+	Your request will be processed within a few days.</br>
+	We invite you to further purchases.</br>
+
+	<a href="#" class="backToCategories">Back to Categories</a>
 </script>

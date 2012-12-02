@@ -41,6 +41,7 @@ ShopSpa::Application.routes.draw do
   match "getCart" => "home#getCart", :via => :get
   match "addItemToCart" => "home#addItemToCart", :via => :post
   match "removeItemFromCart" => "home#removeItemFromCart", :via => :post
+  match "finalizeOrder" => "home#finalizeOrder", :via => :put
   # The priority is based upon order of creation:
   # first created -> highest priority.
 

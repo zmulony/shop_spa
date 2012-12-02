@@ -122,6 +122,16 @@ class Storage
             data: {item_id: item_id}
       })
 
+  finalizeOrder: (buyer) ->
+    buyer['_method'] = 'PUT'
+    $.ajax({
+            type: 'POST'
+            url: 'finalizeOrder.json'
+            async: false
+            dataType: 'json'
+            data: buyer
+      })
+
 # # # # # # # # # 
 #    USECASES   #
 # # # # # # # # # 
@@ -173,6 +183,18 @@ class ShopUseCase
 
   removeProduct: (item_id) =>
 
+  checkConfirmation: =>
+    if @cart.empty == true
+      @sendNotification("Your cart is empty")
+      return
+    @proceedConfirmation()
+
+  sendNotification: (text) =>
+
+  proceedConfirmation: =>
+
+  proceedFinalization: (buyer) =>
+
 
 # # # # # # # # # 
 #      GUI      #
@@ -186,6 +208,7 @@ class Gui
     $("#category_products").html("")
     $("#product").html("")
     $("#cart").html("")
+    $("#buyer_form").html("")
 
 
   createTemplate: (name, content = {}) =>
@@ -253,7 +276,13 @@ class Gui
       item_id = $(this).data("item_id")
       that.removeProductFromCartClicked(item_id)
 
+    $(".confirmOrder").click (event) ->
+      event.preventDefault()
+      that.confirmOrderClicked()
+
   removeProductFromCartClicked: (item_id) =>
+
+  confirmOrderClicked: =>
 
   showCartButton: =>
     $("#cart_button").html @createTemplate("#cart_button")
@@ -267,6 +296,30 @@ class Gui
 
   showCartNotification: (cart) =>
     $("#cart_notification").html @createTemplate("#cart_notification", cart)
+
+  showNotification: (text) =>
+    alert(text)
+
+  showBuyerForm: =>
+    @clearAll()
+    $("#buyer_form").html @createTemplate("#buyer_form")
+
+    that = this
+    $(".finalizeOrder").click (event) ->
+      event.preventDefault()
+      buyer = {}
+      $.each $("#buyer_form input"), (i, input) ->
+        buyer[input.name] = input.value
+      that.finalizeOrderClicked(buyer)
+
+  finalizeOrderClicked: (buyer) =>
+
+  showThanks: =>
+    @showNotification(
+      "Thank you\n
+      Your request will be processed within a few days.\n
+      We invite you to further purchases.\n"
+      )
 
   backToCategories: =>
 
@@ -305,6 +358,15 @@ class Glue
 
     After(@gui, 'removeProductFromCartClicked', (item_id) => @useCase.removeProduct(item_id))
     Before(@useCase, 'removeProduct', (item_id) => @storage.removeItemFromCart(item_id))
+
+    After(@gui, 'confirmOrderClicked', => @useCase.checkConfirmation())
+    After(@useCase, 'sendNotification', (text) => @gui.showNotification(text))
+    After(@useCase, 'proceedConfirmation', => @gui.showBuyerForm())
+
+    After(@gui, 'finalizeOrderClicked', (buyer) => @useCase.proceedFinalization(buyer))
+    Before(@useCase, 'proceedFinalization', (buyer) => @storage.finalizeOrder(buyer))
+    After(@useCase, 'proceedFinalization', => @gui.showThanks())
+    After(@gui, 'showThanks', => @useCase.initCart(@storage.getCart()))
 
     After(@gui, 'showCartButtonClicked', => @useCase.showCartButton())
     After(@useCase, 'showCartButton', => @gui.showCart(@useCase.cart))

@@ -57,4 +57,18 @@ class HomeController < ApplicationController
 			format.json {render :json => "ok"}
 		end
 	end
+
+	def finalizeOrder
+		@current_buyer.first_name = params[:firstname]
+		@current_buyer.last_name = params[:lastname]
+
+		if @current_buyer.first_name and @current_buyer.last_name
+			@cart.confirmed = true
+			@cart.update_attributes(params[:order])
+		end
+
+		respond_to do |format|
+			format.json {render :json => "ok"}
+		end
+	end
 end
