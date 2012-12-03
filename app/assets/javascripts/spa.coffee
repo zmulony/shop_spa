@@ -2,13 +2,13 @@
 #    MODELS     #
 # # # # # # # # # 
 
-class Category
+class @Category
   constructor: (@id, @name) ->
 
-class Product
+class @Product
   constructor: (@id, @name, @description, @price, @category_id) ->
 
-class Cart
+class @Cart
   constructor: ->
     @items = []
     @total_price = 0
@@ -37,7 +37,7 @@ class Cart
     @total_price /= 100.0
     @total_price
 
-class OrderItem
+class @OrderItem
   constructor: (@id, @product_id, @price, @quantity) ->
     @item_price = @price / 100.0
 
@@ -51,7 +51,7 @@ class OrderItem
 #    STORAGE    #
 # # # # # # # # # 
 
-class Storage
+class @Storage
   constructor: ->
 
   storeJSON: (json) ->
@@ -136,7 +136,7 @@ class Storage
 #    USECASES   #
 # # # # # # # # # 
 
-class ShopUseCase
+class @ShopUseCase
   constructor: ->
     @categories = []
     @products = []
@@ -195,6 +195,12 @@ class ShopUseCase
 
   proceedConfirmation: =>
 
+  checkFinalization: (buyer) =>
+    if buyer["firstname"] and buyer["lastname"]
+      @proceedFinalization(buyer)
+      return
+    @sendNotification("You must fill in all fields of the form")
+
   proceedFinalization: (buyer) =>
 
   showSearchButton: =>
@@ -219,7 +225,7 @@ class ShopUseCase
 #      GUI      #
 # # # # # # # # # 
 
-class Gui
+class @Gui
   constructor: ->
 
   clearAll: =>
@@ -388,7 +394,7 @@ class Gui
 #     GLUE      #
 # # # # # # # # # 
 
-class Glue
+class @Glue
   constructor: (@useCase, @gui, @storage) ->
     AutoBind(@gui, @useCase)
 
@@ -422,7 +428,7 @@ class Glue
     After(@useCase, 'sendNotification', (text) => @gui.showNotification(text))
     After(@useCase, 'proceedConfirmation', => @gui.showBuyerForm())
 
-    After(@gui, 'finalizeOrderClicked', (buyer) => @useCase.proceedFinalization(buyer))
+    After(@gui, 'finalizeOrderClicked', (buyer) => @useCase.checkFinalization(buyer))
     Before(@useCase, 'proceedFinalization', (buyer) => @storage.finalizeOrder(buyer))
     After(@useCase, 'proceedFinalization', => @gui.showThanks())
     After(@gui, 'showThanks', => @useCase.initCart(@storage.getCart()))
@@ -446,7 +452,7 @@ class Glue
 #   MAIN APP    #
 # # # # # # # # # 
 
-class ShopApp
+class @ShopApp
   constructor: ->
     useCase = new ShopUseCase()
     gui = new Gui()

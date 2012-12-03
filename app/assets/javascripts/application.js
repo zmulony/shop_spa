@@ -19,4 +19,5 @@
 //= require utils
 //= require sugar-1.3.6.min
 //= require uuid
+//= require spa
 //= require_tree .

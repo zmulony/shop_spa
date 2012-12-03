@@ -40,3 +40,6 @@ gem 'jquery-rails'
 gem 'devise'
 gem 'ransack'
 gem 'faker'
+gem "rspec-rails", "~> 2.8"
+gem 'jasmine'
+gem 'jasminerice'

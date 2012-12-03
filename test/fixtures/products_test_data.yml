@@ -1,0 +1,27 @@
+product1:
+	id: 1
+	name: "pork"
+	description: "fresh piece of meat"
+	price: 976
+	category_id: 1
+
+product2:
+	id: 2
+	name: "chicken"
+	description: "better than KFC"
+	price: 533
+	category_id: 1
+
+product3:
+	id: 3
+	name: "orange"
+	description: "fresh, juicy and healty"
+	price: 389
+	category_id: 2
+
+product4:
+	id: 4
+	name: "apple"
+	description: "shiny red apples, Newton approves"
+	price: 67
+	category_id: 2
